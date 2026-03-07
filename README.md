@@ -1,78 +1,97 @@
 # ProofSentinel
 
-Continuous Proof-of-Reserves monitoring: track reserve ratios, detect anomalies, trigger safeguards via Chainlink CRE.
+Continuous Proof-of-Reserves monitoring powered by Chainlink CRE. Tracks reserve ratios in real-time, detects anomalies, and triggers on-chain safeguards automatically.
 
 ## Repo structure
 
 ```
 proofsentinel/
-├── contracts/          # ReserveMonitor.sol — safeguards (pause, emit alert)
-├── backend/            # API server, monitoring service, risk engine
-├── cre-workflows/      # CRE workflow YAML (trigger → fetch → compute → safeguard)
-├── scripts/            # fetch-reserves.ts, fetch-liabilities.ts, demo
-└── dashboard/          # Next.js UI — protocol, monitoring, alerts
+├── contracts/             # ReserveMonitor.sol (Sepolia: 0xb80D...89B3)
+├── backend/               # API server, monitoring, risk engine, safeguard service
+├── cre-workflows/         # CRE workflow (cron → monitor → alert → on-chain pause)
+├── e2e-test/              # E2E test scripts
+├── scripts/               # Standalone reserve/liability fetchers
+└── dashboard/             # Next.js UI
 ```
+
+## Deployed Contracts
+
+| Network | Contract | Address |
+|---|---|---|
+| Sepolia | ReserveMonitor | `0xb80D135fb054ce3b27Ef67Eca016DBACff0F89B3` |
 
 ## Quick start
 
-### 1. Backend (API + logic)
+### 1. Backend
 
 ```bash
-cd proofsentinel/backend
-npm install
-npm run api
+cd backend && bun install && bun run dev:api
 ```
 
-API: http://localhost:3001  
-Endpoints: `POST /protocol`, `GET /protocols`, `GET /monitoring/:protocolId`, `GET /alerts`, `POST /alerts`
+API: http://localhost:3001
 
-### 2. Dashboard (Next.js)
+| Endpoint | Method | Description |
+|---|---|---|
+| `/protocol` | POST | Register protocol |
+| `/protocols` | GET | List protocols |
+| `/monitoring/:protocolId` | GET | Run monitoring check |
+| `/alerts` | GET/POST | List or record alerts |
+| `/alerts/:protocolId` | GET | Alerts for protocol |
+| `/safeguard` | POST | Trigger on-chain safeguard |
+
+### 2. Contracts
+
+Deployed on Sepolia: `0xb80D135fb054ce3b27Ef67Eca016DBACff0F89B3`
 
 ```bash
-cd proofsentinel/dashboard
-npm install
-npm run dev
+cd contracts && bun install && bunx hardhat test     # run tests
+bunx hardhat run scripts/deploy.ts --network sepolia # redeploy
 ```
 
-Dashboard: http://localhost:3000  
-Pages: `/`, `/protocol`, `/monitoring`, `/alerts`
-
-### 3. Scripts (reserves / liabilities)
+### 3. CRE Workflow
 
 ```bash
-cd proofsentinel/scripts
-npm install
-# Reserves (native ETH):
-RESERVE_WALLETS=0x...,0x... npx ts-node fetch-reserves.ts
-# Reserves (ERC20):
-RESERVE_WALLETS=0x...,0x... TOKEN_ADDRESS=0x... npx ts-node fetch-reserves.ts
-# Liabilities (token totalSupply):
-TOKEN_ADDRESS=0x... npx ts-node fetch-liabilities.ts
+cd cre-workflows/monitoring-workflow && bun install
+
+# simulate (start backend first)
+cd cre-workflows && cre workflow simulate ./monitoring-workflow --target=staging-settings
+
+# deploy (requires CRE early access)
+cre workflow deploy ./monitoring-workflow --target=staging-settings
 ```
 
-### 4. CRE workflow (orchestration)
+After deployment, grant oracle role to the DON forwarder:
 
-CRE runs the monitoring loop and posts alerts to your backend.
+```bash
+cd contracts && bunx hardhat console --network sepolia
+> const m = await ethers.getContractAt("ReserveMonitor", "0xb80D135fb054ce3b27Ef67Eca016DBACff0F89B3")
+> await m.grantOracleRole("<forwarder-address>")
+```
 
-- **Runnable workflow:** TypeScript in `cre-workflows/monitoring-workflow/` (cron → GET /monitoring → if critical, POST /alerts).
-- **Setup:** See [cre-workflows/README.md](cre-workflows/README.md) for config, `bun install`, simulate (`cre workflow simulate monitoring-workflow --target staging-settings`), and deploy.
-- **Conceptual YAML:** `cre-workflows/monitoring-workflow.yaml` is reference only; the real integration is the TS workflow above.
+### 4. Dashboard
 
-### 5. Demo simulation
+```bash
+cd dashboard && bun install && bun run dev
+```
 
-See `scripts/demo-simulation.md`. Simulate a breach and confirm alerts on the dashboard.
+http://localhost:3000
+
+### 5. Tests
+
+```bash
+# e2e (start backend first)
+cd e2e-test && bun install && bun run src/index.ts 1  # through 6
+
+# contracts
+cd contracts && bunx hardhat test
+
+# cre workflow
+cd cre-workflows/monitoring-workflow && bun test
+```
 
 ## Tech stack
 
-- **Contracts:** Solidity (ReserveMonitor)
-- **Backend:** Node.js / TypeScript (Express, ethers)
-- **Monitoring engine:** Chainlink CRE
-- **Dashboard:** Next.js (App Router)
-- **Scripts:** TypeScript, ethers
-
-## Success criteria
-
-- [x] Monitoring computes reserve ratios  
-- [x] CRE workflow defined (trigger, steps, safeguard)  
-- [x] Anomalies trigger alerts (API + dashboard)  
-- [x] Dashboard shows solvency metrics and alerts  
+- **Contracts**: Solidity 0.8.19, Hardhat, Sepolia
+- **Backend**: TypeScript, Express, ethers.js, Bun
+- **CRE**: Chainlink CRE SDK, ConfidentialHTTPClient, EVMClient
+- **Dashboard**: Next.js 14

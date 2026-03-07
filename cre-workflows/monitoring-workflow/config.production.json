@@ -1,5 +1,9 @@
 {
   "schedule": "0 */5 * * * *",
   "apiBaseUrl": "https://your-api.example.com",
-  "protocolId": "your-protocol-id"
+  "protocolId": "your-protocol-id",
+  "evm": {
+    "chainSelectorName": "ethereum-testnet-sepolia",
+    "reserveMonitorAddress": "0xb80D135fb054ce3b27Ef67Eca016DBACff0F89B3"
+  }
 }

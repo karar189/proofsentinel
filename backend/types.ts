@@ -29,3 +29,5 @@ export type Alert = {
   message: string;
   ratio?: number;
 };
+
+export type SafeguardAction = "pause_withdrawals" | "pause_deposits" | "emit_alert";

@@ -1,5 +1,9 @@
 {
   "schedule": "*/30 * * * * *",
   "apiBaseUrl": "http://localhost:3001",
-  "protocolId": "demo"
+  "protocolId": "demo",
+  "evm": {
+    "chainSelectorName": "ethereum-testnet-sepolia",
+    "reserveMonitorAddress": "0xb80D135fb054ce3b27Ef67Eca016DBACff0F89B3"
+  }
 }

@@ -1,12 +1,16 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
+    "target": "esnext",
     "module": "ESNext",
     "moduleResolution": "bundler",
+    "lib": ["ESNext"],
+    "outDir": "./dist",
     "strict": true,
-    "noEmit": true,
+    "esModuleInterop": true,
     "skipLibCheck": true,
-    "types": ["bun-types"]
+    "forceConsistentCasingInFileNames": true
   },
-  "include": ["./*.ts"]
+  "include": [
+    "main.ts"
+  ]
 }

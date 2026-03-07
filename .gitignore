@@ -14,6 +14,19 @@ dist/
 # CRE
 cre-workflows/.env
 
+# Contracts
+contracts/.env
+
+# Database
+*.db
+*.db-journal
+*.db-wal
+
+# Hardhat
+contracts/artifacts/
+contracts/cache/
+contracts/typechain-types/
+
 # OS
 .DS_Store
 *.log
