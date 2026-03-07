@@ -1,1 +1,19 @@
+# Dependencies
 node_modules/
+
+# Env and secrets
+.env
+.env.local
+.env.*.local
+
+# Build / cache
+.next/
+dist/
+*.tsbuildinfo
+
+# CRE
+cre-workflows/.env
+
+# OS
+.DS_Store
+*.log
