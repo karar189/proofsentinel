@@ -1,0 +1,15 @@
+# ProofSentinel CRE project — shared config for all workflows
+# See: https://docs.chain.link/cre/reference/project-configuration-ts
+
+staging-settings:
+  rpcs:
+    - chain-name: ethereum-testnet-sepolia
+      url: https://ethereum-sepolia-rpc.publicnode.com
+
+production-settings:
+  rpcs:
+    - chain-name: ethereum-testnet-sepolia
+      url: https://ethereum-sepolia-rpc.publicnode.com
+    # Add mainnet when ready:
+    # - chain-name: ethereum-mainnet
+    #   url: https://eth.llamarpc.com

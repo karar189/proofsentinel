@@ -1,0 +1,5 @@
+{
+  "schedule": "*/30 * * * * *",
+  "apiBaseUrl": "http://localhost:3001",
+  "protocolId": "demo"
+}
