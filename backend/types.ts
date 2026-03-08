@@ -4,6 +4,8 @@ export type ProtocolConfig = {
   reserveWallets: string[];
   liabilitySource: "token" | "merkle" | "api";
   tokenAddress?: string;
+  tokenDecimals?: number;
+  tokenSymbol?: string;
   minReserveRatio: number;
   warningRatio: number;
   criticalRatio: number;

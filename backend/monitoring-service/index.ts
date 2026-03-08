@@ -10,6 +10,10 @@ const ERC20_ABI = [
   "function totalSupply() view returns (uint256)",
 ];
 
+function isLikelyContractAddress(addr: string): boolean {
+  return ethers.isAddress(addr) && addr.length === 42 && addr.startsWith("0x");
+}
+
 async function fetchReserves(
   rpcUrl: string,
   wallets: string[],
@@ -17,10 +21,22 @@ async function fetchReserves(
 ): Promise<bigint> {
   const provider = new ethers.JsonRpcProvider(rpcUrl);
   let total = 0n;
-  if (tokenAddress) {
-    const token = new ethers.Contract(tokenAddress, ERC20_ABI, provider);
+  const useToken = tokenAddress && isLikelyContractAddress(tokenAddress);
+  if (useToken) {
+    const token = new ethers.Contract(tokenAddress!, ERC20_ABI, provider);
     for (const w of wallets) {
-      total += await token.balanceOf(w);
+      try {
+        const bal = await token.balanceOf(w);
+        total += typeof bal === "bigint" ? bal : BigInt(bal?.toString() ?? "0");
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : String(e);
+        if (msg.includes("BAD_DATA") || msg.includes("0x")) {
+          throw new Error(
+            `balanceOf failed: wrong chain or invalid token. Your wallet balance is on a specific network (e.g. BNB Smart Chain). When registering the protocol, set RPC URL to that same chain (e.g. https://bsc-dataseed.binance.org/ for BNB). For native BNB/ETH only, leave Liability Token empty.`
+          );
+        }
+        throw e;
+      }
     }
   } else {
     for (const w of wallets) {
@@ -31,9 +47,25 @@ async function fetchReserves(
 }
 
 async function fetchLiabilities(rpcUrl: string, tokenAddress: string): Promise<bigint> {
+  if (!isLikelyContractAddress(tokenAddress)) {
+    throw new Error(
+      `Invalid token address "${tokenAddress}". Use a 0x... ERC20 contract address, not a symbol.`
+    );
+  }
   const provider = new ethers.JsonRpcProvider(rpcUrl);
   const token = new ethers.Contract(tokenAddress, ERC20_ABI, provider);
-  return await token.totalSupply();
+  try {
+    const supply = await token.totalSupply();
+    return typeof supply === "bigint" ? supply : BigInt(supply?.toString() ?? "0");
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    if (msg.includes("BAD_DATA") || msg.includes("0x")) {
+      throw new Error(
+        `totalSupply failed: use the same RPC as your wallet (e.g. BNB Chain RPC if your token is on BNB). Set RPC URL when registering the protocol.`
+      );
+    }
+    throw e;
+  }
 }
 
 export type MonitorResult = {

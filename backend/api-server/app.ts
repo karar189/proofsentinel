@@ -25,6 +25,8 @@ app.post("/protocol", (req, res) => {
     reserveWallets: body.reserveWallets ?? [],
     liabilitySource: body.liabilitySource ?? "token",
     tokenAddress: body.tokenAddress,
+    tokenDecimals: body.tokenDecimals ?? 18,
+    tokenSymbol: body.tokenSymbol,
     minReserveRatio: body.minReserveRatio ?? 1.0,
     warningRatio: body.warningRatio ?? 1.1,
     criticalRatio: body.criticalRatio ?? 0.95,

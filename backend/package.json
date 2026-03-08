@@ -3,11 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "api": "ts-node api-server/index.ts",
-    "monitor": "ts-node monitoring-service/index.ts",
+    "api": "npx ts-node api-server/index.ts",
+    "monitor": "npx ts-node monitoring-service/index.ts",
     "build": "tsc",
-    "dev:api": "ts-node-dev --respawn api-server/index.ts",
-    "dev:monitor": "ts-node-dev --respawn monitoring-service/index.ts"
+    "dev:api": "npx ts-node-dev --respawn api-server/index.ts",
+    "dev:monitor": "npx ts-node-dev --respawn monitoring-service/index.ts"
   },
   "dependencies": {
     "cors": "^2.8.5",
