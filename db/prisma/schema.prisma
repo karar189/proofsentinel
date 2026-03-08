@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Protocol {
+  id                           String   @id @default(cuid())
+  protocolId                   String   @unique
+  name                         String
+  reserveWallets               String[]
+  liabilitySource              String   @default("token") // "token" | "merkle" | "api"
+  tokenAddress                 String?
+  tokenDecimals                Int      @default(18)
+  tokenSymbol                  String?
+  minReserveRatio              Float    @default(1.0)
+  warningRatio                 Float    @default(1.1)
+  criticalRatio                Float    @default(0.95)
+  reserveMonitorContractAddress String?
+  rpcUrl                       String?
+
+  // Merkle liability fields
+  merkleRoot                   String?
+  merkleTreeData               Json?    // stored tree leaves for verification
+
+  // API liability fields
+  liabilityApiUrl              String?
+  liabilityApiPath             String?  // JSON path to extract liability value (e.g. "data.totalLiabilities")
+
+  createdAt                    DateTime @default(now())
+  updatedAt                    DateTime @updatedAt
+
+  alerts                       Alert[]
+  snapshots                    MonitoringSnapshot[]
+}
+
+model Alert {
+  id         String   @id @default(cuid())
+  alertId    String   @unique
+  protocolId String
+  type       String   @default("reserve_ratio")
+  severity   String   // "warning" | "critical"
+  message    String
+  ratio      Float?
+  timestamp  DateTime @default(now())
+
+  protocol   Protocol @relation(fields: [protocolId], references: [protocolId], onDelete: Cascade)
+
+  @@index([protocolId])
+}
+
+model MonitoringSnapshot {
+  id            String   @id @default(cuid())
+  protocolId    String
+  reserves      String   // BigInt as string
+  liabilities   String   // BigInt as string
+  reserveRatio  Float
+  status        String   // "healthy" | "warning" | "critical"
+  timestamp     DateTime @default(now())
+
+  protocol      Protocol @relation(fields: [protocolId], references: [protocolId], onDelete: Cascade)
+
+  @@index([protocolId])
+  @@index([timestamp])
+}

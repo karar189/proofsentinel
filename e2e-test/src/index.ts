@@ -25,8 +25,9 @@ if (!step) {
   console.log("  4  Alert creation and retrieval");
   console.log("  5  Safeguard endpoint validation");
   console.log("  6  Full integration flow (register → alert → safeguard)");
+  console.log("  7  Merkle & API liability sources");
   console.log("");
-  console.log("Step 1 runs offline. Steps 2-6 require: cd backend && bun run dev:api");
+  console.log("Step 1 runs offline. Steps 2-7 require: cd backend && bun run dev:api");
   process.exit(0);
 }
 
@@ -37,6 +38,7 @@ const scripts: Record<string, string> = {
   "4": "./04_alerts.ts",
   "5": "./05_safeguard.ts",
   "6": "./06_full_flow.ts",
+  "7": "./07_merkle_liability.ts",
 };
 
 const script = scripts[step];

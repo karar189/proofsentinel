@@ -7,6 +7,11 @@ const API_BASE = typeof window !== "undefined"
   ? (process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001")
   : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001");
 
+export type LiabilityLeaf = {
+  userId: string;
+  balance: string;
+};
+
 export type ProtocolConfig = {
   protocolId: string;
   name: string;
@@ -20,6 +25,10 @@ export type ProtocolConfig = {
   criticalRatio: number;
   reserveMonitorContractAddress?: string;
   rpcUrl?: string;
+  merkleRoot?: string;
+  merkleTreeData?: LiabilityLeaf[];
+  liabilityApiUrl?: string;
+  liabilityApiPath?: string;
 };
 
 export type MonitoringSnapshot = {

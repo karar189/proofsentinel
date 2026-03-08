@@ -3,6 +3,8 @@
  */
 import { ethers } from "ethers";
 import { computeReserveRatio, evaluateRisk, type Thresholds } from "../risk-engine";
+import { computeTotalLiabilities, verifyProof, buildMerkleTree } from "../merkle-service";
+import { fetchApiLiabilities } from "../api-liability-service";
 import type { ProtocolConfig } from "../types";
 
 const ERC20_ABI = [
@@ -46,7 +48,7 @@ async function fetchReserves(
   return total;
 }
 
-async function fetchLiabilities(rpcUrl: string, tokenAddress: string): Promise<bigint> {
+async function fetchTokenLiabilities(rpcUrl: string, tokenAddress: string): Promise<bigint> {
   if (!isLikelyContractAddress(tokenAddress)) {
     throw new Error(
       `Invalid token address "${tokenAddress}". Use a 0x... ERC20 contract address, not a symbol.`
@@ -68,6 +70,51 @@ async function fetchLiabilities(rpcUrl: string, tokenAddress: string): Promise<b
   }
 }
 
+function fetchMerkleLiabilities(config: ProtocolConfig): bigint {
+  if (!config.merkleTreeData || config.merkleTreeData.length === 0) {
+    throw new Error(
+      "Merkle liability source requires merkleTreeData (array of { userId, balance } leaves). " +
+      "Submit them via POST /protocol or PUT /protocol/:id/merkle-tree."
+    );
+  }
+
+  // Verify the tree root matches if a root was previously stored
+  if (config.merkleRoot) {
+    const tree = buildMerkleTree(config.merkleTreeData);
+    if (tree.root !== config.merkleRoot) {
+      throw new Error(
+        `Merkle root mismatch: computed ${tree.root} but expected ${config.merkleRoot}. ` +
+        "The liability data may have been tampered with."
+      );
+    }
+  }
+
+  return computeTotalLiabilities(config.merkleTreeData);
+}
+
+async function fetchLiabilities(config: ProtocolConfig, rpcUrl: string): Promise<bigint> {
+  switch (config.liabilitySource) {
+    case "token":
+      if (!config.tokenAddress) return 0n;
+      return fetchTokenLiabilities(rpcUrl, config.tokenAddress);
+
+    case "merkle":
+      return fetchMerkleLiabilities(config);
+
+    case "api":
+      if (!config.liabilityApiUrl || !config.liabilityApiPath) {
+        throw new Error(
+          "API liability source requires liabilityApiUrl and liabilityApiPath. " +
+          "Set them when registering the protocol."
+        );
+      }
+      return fetchApiLiabilities(config.liabilityApiUrl, config.liabilityApiPath);
+
+    default:
+      throw new Error(`Unknown liability source: ${config.liabilitySource}`);
+  }
+}
+
 export type MonitorResult = {
   reserves: bigint;
   liabilities: bigint;
@@ -83,10 +130,7 @@ export async function monitorProtocol(config: ProtocolConfig): Promise<MonitorRe
     config.reserveWallets,
     config.tokenAddress
   );
-  const liabilities =
-    config.liabilitySource === "token" && config.tokenAddress
-      ? await fetchLiabilities(rpcUrl, config.tokenAddress)
-      : 0n;
+  const liabilities = await fetchLiabilities(config, rpcUrl);
   const ratio = computeReserveRatio(reserves, liabilities);
   const thresholds: Thresholds = {
     minReserveRatio: config.minReserveRatio,

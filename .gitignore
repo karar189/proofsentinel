@@ -22,6 +22,13 @@ contracts/.env
 *.db-journal
 *.db-wal
 
+# Prisma generated client
+db/generated/
+
+# Lock files
+bun.lock
+bun.lockb
+
 # Hardhat
 contracts/artifacts/
 contracts/cache/

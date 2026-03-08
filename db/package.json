@@ -1,0 +1,17 @@
+{
+  "name": "proofsentinel-db",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "generate": "bunx prisma generate --schema=prisma/schema.prisma",
+    "migrate": "bunx prisma migrate dev --schema=prisma/schema.prisma",
+    "migrate:deploy": "bunx prisma migrate deploy --schema=prisma/schema.prisma",
+    "push": "bunx prisma db push --schema=prisma/schema.prisma",
+    "studio": "bunx prisma studio --schema=prisma/schema.prisma",
+    "seed": "bun run seed.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.6.0",
+    "prisma": "^6.6.0"
+  }
+}

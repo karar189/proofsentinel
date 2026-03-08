@@ -1,3 +1,5 @@
+import type { LiabilityLeaf } from "./merkle-service";
+
 export type ProtocolConfig = {
   protocolId: string;
   name: string;
@@ -11,6 +13,14 @@ export type ProtocolConfig = {
   criticalRatio: number;
   reserveMonitorContractAddress?: string;
   rpcUrl?: string;
+
+  // Merkle liability fields
+  merkleRoot?: string;
+  merkleTreeData?: LiabilityLeaf[];
+
+  // API liability fields
+  liabilityApiUrl?: string;
+  liabilityApiPath?: string;
 };
 
 export type MonitoringSnapshot = {
