@@ -1,6 +1,0 @@
-{
-  "/page": "app/page.js",
-  "/protocol/page": "app/protocol/page.js",
-  "/monitoring/page": "app/monitoring/page.js",
-  "/alerts/page": "app/alerts/page.js"
-}
